@@ -2,12 +2,45 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import { FriendsPage } from './components/FriendsPage';
+import { Login } from './components/Login';
+import { PostsPage } from './components/PostPage';
+import { AppRoot } from './components/Root';
 import reportWebVitals from './reportWebVitals';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AppRoot />,
+    children: [
+      {
+        path: '/',
+        element: <App />,       // Главная страница
+      },
+      {
+        path: 'login',
+        element: <Login />,      // Страница входа
+      },
+      {
+        path: 'posts',
+        element: <PostsPage />,  // Страница с постами
+      },
+      {
+        path: 'friends',
+        element: <FriendsPage />,  // Страница с друзьями
+      },
+    ],
+  },
+]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 
