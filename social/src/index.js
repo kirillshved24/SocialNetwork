@@ -9,6 +9,7 @@ import {
 import { FriendsPage } from './components/FriendsPage';
 import { Login } from './components/Login';
 import { PostsPage } from './components/PostPage';
+import { AdminPage } from './components/AdminPage';
 import { AppRoot } from './components/Root';
 import reportWebVitals from './reportWebVitals';
 
@@ -29,6 +30,11 @@ const router = createBrowserRouter([
         path: 'posts',
         element: <PostsPage />,  // Страница с постами
       },
+      {
+        path: 'admin',
+        element: <AdminPage />,  // Страница администратора
+      },
+
       {
         path: 'friends',
         element: <FriendsPage />,  // Страница с друзьями
