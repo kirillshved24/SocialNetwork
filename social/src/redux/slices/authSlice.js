@@ -3,8 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     currentUser: JSON.parse(localStorage.getItem('currentUser')) || null,
     isAdmin: JSON.parse(localStorage.getItem('isAdmin')) || false,
-    isAuthenticated: !!localStorage.getItem('currentUser'),
-    friends: JSON.parse(localStorage.getItem('friends')) || [], // Друзья из localStorage
+    isAuthenticated: Boolean(localStorage.getItem('currentUser')),
+    friends: JSON.parse(localStorage.getItem('friends')) || [],
 };
 
 const authSlice = createSlice({
@@ -25,10 +25,19 @@ const authSlice = createSlice({
             state.isAuthenticated = false;
             localStorage.removeItem('currentUser');
             localStorage.removeItem('isAdmin');
-        }
-    }
+        },
+        addFriend: (state, action) => {
+            if (!state.friends.includes(action.payload)) {
+                state.friends.push(action.payload);
+                localStorage.setItem('friends', JSON.stringify(state.friends));
+            }
+        },
+        removeFriendAction: (state, action) => { // Renamed to avoid conflicts
+            state.friends = state.friends.filter(friend => friend !== action.payload);
+            localStorage.setItem('friends', JSON.stringify(state.friends));
+        },
+    },
 });
 
-export const { login, logout } = authSlice.actions;
-
+export const { login, logout, addFriend, removeFriendAction } = authSlice.actions;
 export default authSlice.reducer;

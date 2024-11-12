@@ -1,65 +1,68 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { login } from '../../redux/slices/authSlice';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'; 
+import { useDispatch } from 'react-redux'; 
+import { login } from '../../redux/slices/authSlice'; 
+import { useNavigate } from 'react-router-dom'; 
+import { Input } from '../../ui/Input'; 
+import { Button } from '../../ui/Button'; 
+import { Container } from '../../ui/Container'; 
+import { Title } from '../../ui/Typo'; 
+import * as SC from './styles'; 
 
 export const Register = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+    const [username, setUserName] = useState(''); 
+    const [password, setPassword] = useState(''); 
+    const dispatch = useDispatch(); 
+    const navigate = useNavigate(); 
+
+    // Функция для проверки заполненности полей
+    const isFormValid = () => {
+        if (username.trim() === '' || password.trim() === '') {
+            alert('Пожалуйста, заполните все поля');
+            return false;
+        }
+        return true;
+    };
+
+    // Функция для добавления нового пользователя
+    const addNewUser = (newUser) => {
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+    };
 
     const handleRegister = () => {
-        if (username.trim() === '' || password.trim() === '') {
-            alert('Пожалуйста, введите имя пользователя и пароль');
-            return;
-        }
+        if (!isFormValid()) return;
 
-        console.log('Регистрация пользователя:', username, password);
+        const newUser = { 
+            id: Date.now(),  // Можно заменить на более безопасное создание уникального ID
+            username, 
+            password, 
+            isAdmin: false 
+        };
 
-        // Получаем существующих пользователей из localStorage
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        console.log('Текущие пользователи:', users);
-
-        // Проверяем, существует ли уже пользователь с таким именем
-        const userExists = users.some(user => user.username === username);
-
-        if (userExists) {
-            alert('Пользователь с таким именем уже существует');
-            return;
-        }
-
-        // Генерируем новый уникальный ID
-        const newUser = { id: Date.now(), username, password, isAdmin: false };
-        console.log('Новый пользователь:', newUser);
-
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users)); // Сохраняем в localStorage
-
-        // Логиним нового пользователя сразу после регистрации
-        dispatch(login({ username: newUser.username, isAdmin: newUser.isAdmin }));
-        console.log('Пользователь залогинен:', newUser.username);
-
-        // Перенаправляем на страницу друзей
-        navigate('/friends');
+        addNewUser(newUser);  // Добавляем пользователя
+        dispatch(login({ username, isAdmin: false }));  // Логиним пользователя
+        navigate('/');  // Переходим на главную страницу
     };
 
     return (
-        <div>
-            <h2>Регистрация</h2>
-            <input
-                type="text"
-                placeholder="Имя пользователя"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-            />
-            <input
-                type="password"
-                placeholder="Пароль"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button onClick={handleRegister}>Зарегистрироваться</button>
-        </div>
+        <Container>
+            <SC.FormWrapper>
+                <Title>Регистрация</Title>
+                <Input
+                    type="text"
+                    placeholder="Имя пользователя"
+                    value={username}
+                    onChange={(e) => setUserName(e.target.value)}
+                />
+                <Input
+                    type="password"
+                    placeholder="Пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button onClick={handleRegister}>Зарегистрироваться</Button>
+            </SC.FormWrapper>
+        </Container>
     );
 };

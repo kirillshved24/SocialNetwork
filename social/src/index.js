@@ -15,12 +15,18 @@ import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { ProtectedRoute } from './pages/ProtectedRoute/ProtectedRoute.js';
 import { Register } from './components/Register/Register.jsx';
+import App from './App';
+
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <AppRoot />,
     children: [
+      {
+        index: true,
+        element:<App/>
+      },
       {
         path: 'login',
         element: <Login />,      // Страница входа
@@ -34,7 +40,7 @@ const router = createBrowserRouter([
         path: 'posts',
         element: (
           <ProtectedRoute>
-            <PostsPage />  // Страница с постами
+            <PostsPage /> 
           </ProtectedRoute>
         ),
       },
@@ -42,7 +48,7 @@ const router = createBrowserRouter([
         path: 'friends',
         element: (
           <ProtectedRoute>
-            <FriendsPage />  // Страница с друзьями
+            <FriendsPage />  
           </ProtectedRoute>
         ),
       },
