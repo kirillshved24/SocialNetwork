@@ -1,146 +1,84 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { addPost, deletePost, updatePost, addComment } from '../../redux/slices/postSlice';
+import React, { useState } from 'react'; // Импортирует React и хук useState
+import { useDispatch, useSelector } from 'react-redux'; // Импортирует хуки useDispatch и useSelector для работы с Redux
+import { addPost, updatePost } from '../../redux/slices/postSlice'; // Импортирует действия addPost и updatePost из postSlice
+import { Container } from '../../ui/Container'; // Импортирует компонент Container
+import { Input } from '../../ui/Input'; // Импортирует компонент Input
+import { Button } from '../../ui/Button'; // Импортирует компонент Button
+import { Title } from '../../ui/Typo'; // Импортирует компонент Title
+import * as SC from './styles'; // Импортирует стили в объект SC
 
-export const PostsPage = () => {
-    const [postText, setPostText] = useState('');
-    const [commentText, setCommentText] = useState('');
-    const [isEditing, setIsEditing] = useState(false);
-    const [currentPostId, setCurrentPostId] = useState(null);
-    const [isPublic, setIsPublic] = useState(true);
+export const PostsPage = () => { // Определяет функциональный компонент PostsPage
+    const [postText, setPostText] = useState(''); // Состояние для текста заголовка поста
+    const [textArea, setTextArea] = useState(''); // Состояние для текста поста
+    const [isEditing, setIsEditing] = useState(false); // Состояние для режима редактирования
+    const [currentPostId, setCurrentPostId] = useState(null); // Состояние для ID текущего поста
+    const [isPublic, setIsPublic] = useState(true); // Состояние для определения публичности поста
 
-    const posts = useSelector((state) => state.posts.posts);
-    const { currentUser, isAdmin } = useSelector((state) => state.auth); 
-    const friends = JSON.parse(localStorage.getItem('friends')) || [];
-    const dispatch = useDispatch();
+    const { currentUser } = useSelector((state) => state.auth); // Получает текущего пользователя из состояния auth
+    const dispatch = useDispatch(); // Создает функцию dispatch для отправки действий в Redux
 
-    const handleAddOrUpdatePost = () => {
-        if (postText.trim() === '') {
-            alert('Пост не может быть пустым');
+    const handleAddOrUpdatePost = () => { // Функция для добавления или обновления поста
+        if (postText.trim() === '' || textArea.trim() === '') { // Проверяет, не пустые ли поля ввода
+            alert('Пост не может быть пустым'); // Выводит предупреждение, если поля пустые
             return;
         }
 
-        if (isEditing) {
-            dispatch(updatePost({ id: currentPostId, text: postText, isPublic }));
-            console.log("Обновление поста с id:", currentPostId, "Текст:", postText);
-            setIsEditing(false);
-            setCurrentPostId(null);
+        if (isEditing) { // Если режим редактирования
+            dispatch(updatePost({ id: currentPostId, text: postText, isPublic })); // Отправляет действие для обновления поста
+            setIsEditing(false); // Выключает режим редактирования
+            setCurrentPostId(null); // Сбрасывает ID текущего поста
         } else {
-            dispatch(addPost({
+            dispatch(addPost({ // Отправляет действие для добавления нового поста
                 id: Date.now(),
                 text: postText,
+                textarea: textArea,
                 isPublic,
-                author: currentUser // Используем currentUser как автора
+                author: currentUser
             }));
-            console.log("Добавление нового поста:", postText);
         }
 
-        setPostText(''); // Очищаем поле после добавления/редактирования поста
-    };
-
-    const handleAddComment = (postId) => {
-        if (commentText.trim() === '') {
-            alert('Комментарий не может быть пустым');
-            return;
-        }
-
-        const newComment = {
-            id: Date.now(),
-            text: commentText,
-            author: currentUser.username // Используем username для автора комментария
-        };
-
-        dispatch(addComment({ postId, comment: newComment }));
-        console.log("Добавление комментария к посту с id:", postId, "Комментарий:", newComment);
-        setCommentText(''); // Очищаем поле после добавления комментария
-    };
-
-    const canSeePost = (post) => {
-        if (post.isPublic || isAdmin) return true; // Пост общедоступен или пользователь админ
-        return friends.some(friend => friend.username === post.author); // Пост доступен только друзьям
-    };
-
-    const canDeletePost = (post) => {
-        return isAdmin || post.author === currentUser.username; // Только администратор или автор могут удалить пост
+        setPostText(''); // Очищает поле ввода заголовка
+        setTextArea(''); // Очищает поле ввода текста
     };
 
     return (
-        <div>
-            <h2>Страница с постами</h2>
-            <input
-                type="text"
-                placeholder="Введите текст"
-                value={postText}
-                onChange={(e) => setPostText(e.target.value)}
-            />
-            <div>
-                <label>
-                    <input
-                        type="radio"
-                        checked={isPublic}
-                        onChange={() => setIsPublic(true)}
-                    />
-                    Общедоступный
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        checked={!isPublic}
-                        onChange={() => setIsPublic(false)}
-                    />
-                    Только для друзей
-                </label>
-            </div>
-            <button onClick={handleAddOrUpdatePost}>
-                {isEditing ? 'Обновить пост' : 'Добавить пост'}
-            </button>
-
-            <h3>Список постов</h3>
-            <ul>
-                {posts
-                    .filter(post => canSeePost(post)) // Фильтруем посты по видимости
-                    .map((post) => (
-                    <li key={post.id}>
-                        <p>{post.text}</p>
-                        <p><strong>Автор:</strong> {post.author}</p>
-                        <div>
-                            {canDeletePost(post) && (
-                                <button onClick={() => {
-                                    dispatch(deletePost({ postId: post.id, currentUser, isAdmin }));
-                                    console.log(`Запрос на удаление поста с id: ${post.id}`);
-                                }}>
-                                    Удалить пост
-                                </button>
-                            )}
-                            {post.author === currentUser.username && (
-                                <button onClick={() => {
-                                    setIsEditing(true);
-                                    setCurrentPostId(post.id);
-                                    setPostText(post.text);
-                                    setIsPublic(post.isPublic);
-                                    console.log("Начало редактирования поста с id:", post.id);
-                                }}>Редактировать пост</button>
-                            )}
-                        </div>
-
-                        <h4>Комментарии</h4>
-                        <ul>
-                            {post.comments && post.comments.map(comment => (
-                                <li key={comment.id}>
-                                    {comment.author}: {comment.text}
-                                </li>
-                            ))}
-                        </ul>
-                        <input
-                            type="text"
-                            placeholder="Добавить комментарий"
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
+        <Container>
+            <SC.PostFormContainer>
+                <Title>Создание поста</Title>
+                <Input
+                    type="text"
+                    placeholder="Введите заголовок поста"
+                    value={postText}
+                    onChange={(e) => setPostText(e.target.value)}
+                />
+                <SC.TextArea
+                    type='text'
+                    placeholder="Введите текст поста"
+                    value={textArea}
+                    onChange={(e) => setTextArea(e.target.value)}
+                />
+                <SC.RadioGroup>
+                    <SC.Label>
+                        Общедоступный
+                        <SC.Radio
+                            type="radio"
+                            checked={isPublic}
+                            onChange={() => setIsPublic(true)}
                         />
-                        <button onClick={() => handleAddComment(post.id)}>Добавить комментарий</button>
-                    </li>
-                ))}
-            </ul>
-        </div>
+                    </SC.Label>
+                    <SC.Label>
+                        Только для друзей
+                        <SC.Radio
+                            type="radio"
+                            checked={!isPublic}
+                            onChange={() => setIsPublic(false)}
+                        />
+                    </SC.Label>
+                </SC.RadioGroup>
+                <Button onClick={handleAddOrUpdatePost}>
+                    {isEditing ? 'Обновить пост' : 'Добавить пост'}
+                </Button>
+            </SC.PostFormContainer>
+        </Container>
     );
 };

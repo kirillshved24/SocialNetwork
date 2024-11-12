@@ -1,79 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { fetchUsers } from '../../api/friendsApi';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react'; // Импортирует React и хуки useState и useEffect
+import { fetchUsers } from '../../api/friendsApi'; // Импортирует функцию для получения списка пользователей
+import { useSelector } from 'react-redux'; // Импортирует хук useSelector для доступа к состоянию Redux
+import { Container } from '../../ui/Container'; // Импортирует компонент Container
+import { Button } from '../../ui/Button'; // Импортирует компонент Button
+import { Title } from '../../ui/Typo'; // Импортирует компонент Title
+import * as SC from './styles'; // Импортирует стили в объект SC
 
 
 export const FriendsPage = () => {
-    const [availableFriends, setAvailableFriends] = useState([]);
-    const [friends, setFriends] = useState([]);
-    const { currentUser } = useSelector(state => state.auth);
+  const [availableFriends, setAvailableFriends] = useState([]); // Состояние для доступных друзей
+  const [friends, setFriends] = useState([]); // Состояние для добавленных друзей
+  const { currentUser } = useSelector(state => state.auth); // Получает текущего пользователя из состояния auth
 
-    useEffect(() => {
-        const savedFriends = localStorage.getItem('friends');
-        if (savedFriends) {
-            setFriends(JSON.parse(savedFriends));
-        }
-    }, [currentUser]);
+  useEffect(() => { // Эффект для загрузки друзей из localStorage
+    const savedFriends = localStorage.getItem('friends'); // Получает сохраненных друзей из localStorage
+    if (savedFriends) {
+      setFriends(JSON.parse(savedFriends)); // Устанавливает друзей из localStorage в состояние
+    }
+  }, [currentUser]); // Срабатывает при изменении currentUser
 
-    useEffect(() => {
-        const loadUsers = async () => {
-            try {
-                const users = await fetchUsers(currentUser);
-                const filteredFriends = users.filter(user => 
-                    !friends.some(friend => friend.id === user.id)
-                );
-                setAvailableFriends(filteredFriends);
-            } catch (error) {
-                console.error('Ошибка при загрузке пользователей:', error);
-            }
-        };
-
-        loadUsers();
-    }, [friends, currentUser]);
-
-    const addFriend = (friend) => {
-        const updatedFriends = [...friends, friend];
-        setFriends(updatedFriends);
-        localStorage.setItem('friends', JSON.stringify(updatedFriends));
-        setAvailableFriends(availableFriends.filter(f => f.id !== friend.id));
+  useEffect(() => { // Эффект для загрузки доступных пользователей
+    const loadUsers = async () => { // Асинхронная функция для загрузки пользователей
+      try {
+        const users = await fetchUsers(currentUser.username); // Получает список пользователей
+        const filteredFriends = users.filter(user => !friends.some(friend => friend.id === user.id)); // Фильтрует добавленных друзей
+        setAvailableFriends(filteredFriends); // Устанавливает доступных друзей
+      } catch (error) {
+        console.error('Ошибка при загрузке пользователей:', error); // Логирует ошибку в консоль
+      }
     };
+    loadUsers(); // Вызывает функцию загрузки пользователей
+  }, [friends, currentUser]); // Срабатывает при изменении friends или currentUser
 
-    const removeFriend = (friend) => {
-        const updatedFriends = friends.filter(f => f.id !== friend.id);
-        setFriends(updatedFriends);
-        localStorage.setItem('friends', JSON.stringify(updatedFriends));
-        setAvailableFriends([...availableFriends, friend]);
-    };
+  const addFriend = (friend) => { // Функция для добавления друга
+    const updatedFriends = [...friends, friend]; // Создает новый массив друзей с добавленным другом
+    setFriends(updatedFriends); // Обновляет состояние друзей
+    localStorage.setItem('friends', JSON.stringify(updatedFriends)); // Сохраняет обновленный список друзей в localStorage
+    setAvailableFriends(availableFriends.filter(f => f.id !== friend.id)); // Убирает добавленного друга из доступных
+  };
 
-    return (
-        <div className>
-            <h2>Ваши друзья</h2>
-            <ul>
-                {friends.length > 0 ? (
-                    friends.map(friend => (
-                        <div key={friend.id}>
-                            {friend.username}
-                            <button onClick={() => removeFriend(friend)}>Удалить</button>
-                        </div>
-                    ))
-                ) : (
-                    <li>У вас нет друзей.</li>
-                )}
-            </ul>
-
-            <h3>Доступные для добавления</h3>
-            <ul>
-                {availableFriends.length > 0 ? (
-                    availableFriends.map(friend => (
-                        <div key={friend.id}>
-                            {friend.username}
-                            <button onClick={() => addFriend(friend)}>Добавить</button>
-                        </div>
-                    ))
-                ) : (
-                    <div>Нет доступных пользователей для добавления в друзья.</div>
-                )}
-            </ul>
-        </div>
-    );
+  return (
+    <Container>
+      <SC.FriendsBlock>
+        <Title>Доступные для добавления</Title>
+        <SC.AvailableFriendsList>
+          {availableFriends.length > 0 ? (
+            availableFriends.map(friend => (
+              <SC.FriendItem key={friend.id}>
+                {friend.username}
+                <Button onClick={() => addFriend(friend)}>Добавить</Button>
+              </SC.FriendItem>
+            ))
+          ) : (
+            <SC.NoAvailableFriendsMessage>...Загрузка</SC.NoAvailableFriendsMessage>
+          )}
+        </SC.AvailableFriendsList>
+      </SC.FriendsBlock>
+    </Container>
+  );
 };
