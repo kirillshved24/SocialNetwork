@@ -5,12 +5,12 @@ import { Container } from '../../ui/Container';
 import { Title } from '../../ui/Typo';
 import * as SC from './styles';
 import { MyFriends } from '../FriendsPage/components/MyFriends';
-import { PostFriends } from '../PostPage/components/PostFriends'; // Импортируем компонент PostFriends
+import { PostFriends } from '../PostPage/components/PostFriends'; 
 
 export const HomePage = () => {
   
     const posts = useSelector((state) => state.posts.posts);
-    const { currentUser, isAdmin, friends } = useSelector((state) => state.auth); // Получаем данные о текущем пользователе и друзьях
+    const { currentUser, isAdmin, friends } = useSelector((state) => state.auth); 
     const dispatch = useDispatch();
 
     const isFriend = (postAuthor) => friends.some((friend) => friend.username === postAuthor.username);
@@ -36,8 +36,7 @@ export const HomePage = () => {
                 </SC.UserInfo>
             )}
             <SC.ContentWrapper>
-                <MyFriends currentUser={currentUser} />
-                {/* Передаем данные в компонент PostFriends */}
+                <MyFriends currentUser={currentUser}/>
                 <PostFriends
                     posts={visiblePosts}
                     currentUser={currentUser}
