@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Button } from '../../../../ui/Button'; // Импортируем Button компонент
-import { Title } from '../../../../ui/Typo'; // Импортируем Title компонент
+import { Button } from '../../../../ui/Button'; 
+import { Title } from '../../../../ui/Typo'; 
 import * as SC from './styles';
+
 
 export const PostFriends = ({ posts, currentUser, isAdmin, onDeletePost, onAddComment }) => {
     const [commentText, setCommentText] = useState('');
@@ -55,7 +56,7 @@ export const PostFriends = ({ posts, currentUser, isAdmin, onDeletePost, onAddCo
                     ))}
                 </SC.PostList>
             ) : (
-                <p>Нет постов для отображения.</p>
+                <Title>Нет постов для отображения.</Title>
             )}
         </SC.PostListContainer>
     );

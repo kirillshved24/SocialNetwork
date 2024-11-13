@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../../../ui/Button';
 import { Title } from '../../../../ui/Typo';
 import { useDispatch } from 'react-redux';
-import { removeFriendAction } from '../../../../redux/slices/authSlice'; // Import renamed action
+import { removeFriendAction } from '../../../../redux/slices/authSlice'; 
 import * as SC from './styles';
 
 export const MyFriends = ({ currentUser }) => {
@@ -20,7 +20,7 @@ export const MyFriends = ({ currentUser }) => {
         const updatedFriends = friends.filter(f => f.id !== friend.id);
         setFriends(updatedFriends);
         localStorage.setItem('friends', JSON.stringify(updatedFriends));
-        dispatch(removeFriendAction(friend)); // Use renamed action here
+        dispatch(removeFriendAction(friend)); 
     };
 
     return (

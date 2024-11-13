@@ -7,10 +7,12 @@ import { Button } from '../../ui/Button';
 import { Container } from '../../ui/Container'; 
 import { Title } from '../../ui/Typo'; 
 import * as SC from './styles'; 
+import { Label } from '../../ui/Label';
 
 export const Register = () => {
     const [username, setUserName] = useState(''); 
     const [password, setPassword] = useState(''); 
+    const [isAdmin, setIsAdmin] = useState(false); 
     const dispatch = useDispatch(); 
     const navigate = useNavigate(); 
 
@@ -23,26 +25,27 @@ export const Register = () => {
         return true;
     };
 
-    // Функция для добавления нового пользователя
+   
     const addNewUser = (newUser) => {
         const users = JSON.parse(localStorage.getItem('users')) || [];
         users.push(newUser);
         localStorage.setItem('users', JSON.stringify(users));
     };
 
+    
     const handleRegister = () => {
         if (!isFormValid()) return;
 
         const newUser = { 
-            id: Date.now(),  // Можно заменить на более безопасное создание уникального ID
+            id: Date.now(),  
             username, 
             password, 
-            isAdmin: false 
+            isAdmin 
         };
 
-        addNewUser(newUser);  // Добавляем пользователя
-        dispatch(login({ username, isAdmin: false }));  // Логиним пользователя
-        navigate('/');  // Переходим на главную страницу
+        addNewUser(newUser);  
+        dispatch(login({ username, isAdmin })); 
+        navigate('/');  
     };
 
     return (
@@ -61,6 +64,16 @@ export const Register = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
+
+                <Label>
+                    <Input
+                        type="checkbox" 
+                        checked={isAdmin}
+                        onChange={() => setIsAdmin(prevState => !prevState)} 
+                    />
+                    Сделать меня администратором
+                </Label>
+
                 <Button onClick={handleRegister}>Зарегистрироваться</Button>
             </SC.FormWrapper>
         </Container>

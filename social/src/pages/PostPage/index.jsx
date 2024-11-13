@@ -1,34 +1,35 @@
-import React, { useState } from 'react'; // Импортирует React и хук useState
-import { useDispatch, useSelector } from 'react-redux'; // Импортирует хуки useDispatch и useSelector для работы с Redux
-import { addPost, updatePost } from '../../redux/slices/postSlice'; // Импортирует действия addPost и updatePost из postSlice
-import { Container } from '../../ui/Container'; // Импортирует компонент Container
-import { Input } from '../../ui/Input'; // Импортирует компонент Input
-import { Button } from '../../ui/Button'; // Импортирует компонент Button
-import { Title } from '../../ui/Typo'; // Импортирует компонент Title
-import * as SC from './styles'; // Импортирует стили в объект SC
+import React, { useState } from 'react'; 
+import { useDispatch, useSelector } from 'react-redux'; 
+import { addPost, updatePost } from '../../redux/slices/postSlice';
+import { Container } from '../../ui/Container'; 
+import { Input } from '../../ui/Input'; 
+import { Button } from '../../ui/Button'; 
+import { Title } from '../../ui/Typo'; 
+import * as SC from './styles'; 
+import { Label } from '../../ui/Label';
 
-export const PostsPage = () => { // Определяет функциональный компонент PostsPage
-    const [postText, setPostText] = useState(''); // Состояние для текста заголовка поста
-    const [textArea, setTextArea] = useState(''); // Состояние для текста поста
-    const [isEditing, setIsEditing] = useState(false); // Состояние для режима редактирования
-    const [currentPostId, setCurrentPostId] = useState(null); // Состояние для ID текущего поста
-    const [isPublic, setIsPublic] = useState(true); // Состояние для определения публичности поста
+export const PostsPage = () => { 
+    const [postText, setPostText] = useState(''); 
+    const [textArea, setTextArea] = useState(''); 
+    const [isEditing, setIsEditing] = useState(false); 
+    const [currentPostId, setCurrentPostId] = useState(null); 
+    const [isPublic, setIsPublic] = useState(true); 
 
-    const { currentUser } = useSelector((state) => state.auth); // Получает текущего пользователя из состояния auth
-    const dispatch = useDispatch(); // Создает функцию dispatch для отправки действий в Redux
+    const { currentUser } = useSelector((state) => state.auth); 
+    const dispatch = useDispatch(); 
 
-    const handleAddOrUpdatePost = () => { // Функция для добавления или обновления поста
-        if (postText.trim() === '' || textArea.trim() === '') { // Проверяет, не пустые ли поля ввода
-            alert('Пост не может быть пустым'); // Выводит предупреждение, если поля пустые
+    const handleAddOrUpdatePost = () => { 
+        if (postText.trim() === '' || textArea.trim() === '') { 
+            alert('Пост не может быть пустым'); 
             return;
         }
 
-        if (isEditing) { // Если режим редактирования
-            dispatch(updatePost({ id: currentPostId, text: postText, isPublic })); // Отправляет действие для обновления поста
-            setIsEditing(false); // Выключает режим редактирования
-            setCurrentPostId(null); // Сбрасывает ID текущего поста
+        if (isEditing) { 
+            dispatch(updatePost({ id: currentPostId, text: postText, isPublic })); 
+            setIsEditing(false); 
+            setCurrentPostId(null); 
         } else {
-            dispatch(addPost({ // Отправляет действие для добавления нового поста
+            dispatch(addPost({ 
                 id: Date.now(),
                 text: postText,
                 textarea: textArea,
@@ -37,8 +38,8 @@ export const PostsPage = () => { // Определяет функциональ�
             }));
         }
 
-        setPostText(''); // Очищает поле ввода заголовка
-        setTextArea(''); // Очищает поле ввода текста
+        setPostText(''); 
+        setTextArea(''); 
     };
 
     return (
@@ -58,22 +59,22 @@ export const PostsPage = () => { // Определяет функциональ�
                     onChange={(e) => setTextArea(e.target.value)}
                 />
                 <SC.RadioGroup>
-                    <SC.Label>
+                    <Label>
                         Общедоступный
                         <SC.Radio
                             type="radio"
                             checked={isPublic}
                             onChange={() => setIsPublic(true)}
                         />
-                    </SC.Label>
-                    <SC.Label>
+                    </Label>
+                    <Label>
                         Только для друзей
                         <SC.Radio
                             type="radio"
                             checked={!isPublic}
                             onChange={() => setIsPublic(false)}
                         />
-                    </SC.Label>
+                    </Label>
                 </SC.RadioGroup>
                 <Button onClick={handleAddOrUpdatePost}>
                     {isEditing ? 'Обновить пост' : 'Добавить пост'}

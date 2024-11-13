@@ -1,26 +1,20 @@
-import React, { useEffect } from 'react'; // Импортирует React и хук useEffect для управления побочными эффектами
-import { useNavigate } from 'react-router-dom'; // Импортирует хук useNavigate для навигации
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export const AdminPage = () => { // Определяет функциональный компонент AdminPage
-    const navigate = useNavigate(); // Создает функцию navigate для навигации между маршрутами
+export const AdminPage = () => { 
+    const navigate = useNavigate();
 
-    useEffect(() => { // Использует хук useEffect для выполнения побочного эффекта при монтировании
-        // Проверяем роль пользователя
-        const role = localStorage.getItem('role'); // Получает роль пользователя из localStorage
-        console.log('Текущая роль пользователя:', role); // Логирует текущую роль пользователя
-
-        if (role !== 'admin') { // Если роль не 'admin'
-            console.log('Неавторизованный доступ. Пользователь перенаправлен на страницу входа.'); // Логирует сообщение о неавторизованном доступе
-            navigate('/login'); // Перенаправляет пользователя на страницу входа
-        } else {
-            console.log('Администратор успешно вошел в систему.'); // Логирует сообщение об успешном входе администратора
+    useEffect(() => {
+        const isAdmin = JSON.parse(localStorage.getItem('isAdmin'));
+        if (isAdmin !== true) {
+            navigate('/login');
         }
-    }, [navigate]); // Зависимость эффекта от navigate, чтобы избежать предупреждений
+    }, [navigate]);
 
-    return ( 
+    return (
         <div>
-            <h2>Страница администратора</h2> 
-            <p>Добро пожаловать, администратор! Здесь вы можете управлять постами и пользователями.</p> 
+            <h2>Страница администратора</h2>
+            <p>Добро пожаловать, администратор! Здесь вы можете управлять постами и пользователями.</p>
         </div>
     );
 };
