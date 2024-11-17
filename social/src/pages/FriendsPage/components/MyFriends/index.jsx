@@ -1,26 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '../../../../ui/Button';
 import { Title } from '../../../../ui/Typo';
-import { useDispatch } from 'react-redux';
-import { removeFriendAction } from '../../../../redux/slices/authSlice'; 
+import { removeFriend } from '../../../../redux/slices/authSlice';
 import * as SC from './styles';
 
-export const MyFriends = ({ currentUser }) => {
-    const [friends, setFriends] = useState([]);
+export const MyFriends = () => {
+    const friends = useSelector((state) => state.auth.friends); // Друзья из Redux
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        const savedFriends = localStorage.getItem('friends');
-        if (savedFriends) {
-            setFriends(JSON.parse(savedFriends));
-        }
-    }, [currentUser]);
-
-    const removeFriend = (friend) => {
-        const updatedFriends = friends.filter(f => f.id !== friend.id);
-        setFriends(updatedFriends);
-        localStorage.setItem('friends', JSON.stringify(updatedFriends));
-        dispatch(removeFriendAction(friend)); 
+    const handleRemoveFriend = (friend) => {
+        dispatch(removeFriend(friend)); // Удаляем друга через Redux
     };
 
     return (
@@ -32,7 +22,7 @@ export const MyFriends = ({ currentUser }) => {
                         friends.map(friend => (
                             <SC.FriendItem key={friend.id}>
                                 {friend.username}
-                                <Button onClick={() => removeFriend(friend)}>Удалить</Button>
+                                <Button onClick={() => handleRemoveFriend(friend)}>Удалить</Button>
                             </SC.FriendItem>
                         ))
                     ) : (
