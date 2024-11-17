@@ -12,11 +12,11 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         login: (state, action) => {
-            const { username, isAdmin } = action.payload;
-            state.currentUser = username;
+            const { username, email, isAdmin } = action.payload;
+            state.currentUser = { username, email };
             state.isAdmin = isAdmin;
             state.isAuthenticated = true;
-            localStorage.setItem('currentUser', JSON.stringify(username));
+            localStorage.setItem('currentUser', JSON.stringify({ username, email }));
             localStorage.setItem('isAdmin', JSON.stringify(isAdmin));
         },
         logout: (state) => {
@@ -27,17 +27,17 @@ const authSlice = createSlice({
             localStorage.removeItem('isAdmin');
         },
         addFriend: (state, action) => {
-            if (!state.friends.includes(action.payload)) {
+            if (!state.friends.some(friend => friend.id === action.payload.id)) {
                 state.friends.push(action.payload);
                 localStorage.setItem('friends', JSON.stringify(state.friends));
             }
         },
-        removeFriendAction: (state, action) => { // Renamed to avoid conflicts
-            state.friends = state.friends.filter(friend => friend !== action.payload);
+        removeFriend: (state, action) => {
+            state.friends = state.friends.filter(friend => friend.id !== action.payload.id);
             localStorage.setItem('friends', JSON.stringify(state.friends));
         },
     },
 });
 
-export const { login, logout, addFriend, removeFriendAction } = authSlice.actions;
+export const { login, logout, addFriend, removeFriend } = authSlice.actions;
 export default authSlice.reducer;

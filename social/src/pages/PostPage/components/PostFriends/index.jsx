@@ -25,7 +25,7 @@ export const PostFriends = ({ posts, currentUser, isAdmin, onDeletePost, onAddCo
                 <SC.PostList>
                     {posts.map((post) => (
                         <SC.PostItem key={post.id}>
-                            <SC.PostAuthor>{post.author.username}</SC.PostAuthor>
+                        <SC.PostAuthor>{post.author.username}</SC.PostAuthor>
                             <SC.PostText>{post.text}</SC.PostText>
 
                             {canDeletePost(post) && (
