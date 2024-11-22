@@ -1,61 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { fetchUsers } from '../../api/friendsApi';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {  addFriendToServer } from '../../redux/slices/authSlice';
 import { Container } from '../../ui/Container';
 import { Button } from '../../ui/Button';
 import { Title } from '../../ui/Typo';
 import * as SC from './styles';
+import axios from 'axios';
 
 export const FriendsPage = () => {
     const [availableFriends, setAvailableFriends] = useState([]);
-    const [friends, setFriends] = useState([]);
-    const { currentUser } = useSelector(state => state.auth);
+    const { currentUser} = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        const savedFriends = localStorage.getItem('friends');
-        if (savedFriends) {
-            setFriends(JSON.parse(savedFriends));
-        }
-    }, [currentUser]);
-
-    useEffect(() => {
-        const loadUsers = async () => {
+        const fetchUsers = async () => {
             try {
-                const users = await fetchUsers(currentUser.username);
-                const filteredFriends = users.filter(user => !friends.some(friend => friend.id === user.id));
-                setAvailableFriends(filteredFriends);
+                const response = await axios.get('/users'); // Эндпоинт для получения всех пользователей
+                setAvailableFriends(response.data.filter(user => user.id !== currentUser.id));
             } catch (error) {
                 console.error('Ошибка при загрузке пользователей:', error);
             }
         };
-        loadUsers();
-    }, [friends, currentUser]);
 
-    const addFriend = (friend) => {
-        const updatedFriends = [...friends, friend];
-        setFriends(updatedFriends);
-        localStorage.setItem('friends', JSON.stringify(updatedFriends));
+        fetchUsers();
+    }, [currentUser]);
+
+    const handleAddFriend = (friend) => {
+        dispatch(addFriendToServer(currentUser.id, friend.id));
         setAvailableFriends(availableFriends.filter(f => f.id !== friend.id));
     };
 
     return (
         <Container>
             <SC.FriendsBlock>
-                <Title>Доступные для добавления</Title>
-                <SC.AvailableFriendsList>
+                <Title>Доступные друзья</Title>
+                <SC.FriendsList>
                     {availableFriends.length > 0 ? (
                         availableFriends.map(friend => (
                             <SC.FriendItem key={friend.id}>
-                                <div>{friend.username}</div>
-                                <div>{friend.email}</div>
-                               
-                                <Button onClick={() => addFriend(friend)}>Добавить</Button>
+                                {friend.username} ({friend.name})
+                                <Button onClick={() => handleAddFriend(friend.id)}>Добавить</Button>
                             </SC.FriendItem>
                         ))
                     ) : (
-                        <SC.NoAvailableFriendsMessage>Нет доступных друзей.</SC.NoAvailableFriendsMessage>
+                        <SC.NoFriendsMessage>Нет доступных друзей.</SC.NoFriendsMessage>
                     )}
-                </SC.AvailableFriendsList>
+                </SC.FriendsList>
             </SC.FriendsBlock>
         </Container>
     );

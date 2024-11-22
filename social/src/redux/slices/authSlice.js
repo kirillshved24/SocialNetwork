@@ -1,43 +1,79 @@
 import { createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 const initialState = {
-    currentUser: JSON.parse(localStorage.getItem('currentUser')) || null,
-    isAdmin: JSON.parse(localStorage.getItem('isAdmin')) || false,
-    isAuthenticated: Boolean(localStorage.getItem('currentUser')),
-    friends: JSON.parse(localStorage.getItem('friends')) || [],
+    currentUser: null,
+    isAdmin: false,
+    isAuthenticated: false,
+    friends: [],
 };
 
-const authSlice = createSlice({
+const authSlice = createSlice({                                      
     name: 'auth',
     initialState,
     reducers: {
         login: (state, action) => {
-            const { username, email, isAdmin } = action.payload;
-            state.currentUser = { username, email };
+            const { username, email, id, isAdmin } = action.payload;
+            console.log('Вход пользователя:', action.payload);
+            state.currentUser = { username, email, id };
             state.isAdmin = isAdmin;
             state.isAuthenticated = true;
-            localStorage.setItem('currentUser', JSON.stringify({ username, email }));
-            localStorage.setItem('isAdmin', JSON.stringify(isAdmin));
         },
         logout: (state) => {
+            console.log('Выход пользователя');
             state.currentUser = null;
             state.isAdmin = false;
             state.isAuthenticated = false;
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('isAdmin');
+            state.friends = [];
+        },
+        setFriends: (state, action) => {
+            console.log('Установлены друзья:', action.payload);
+            state.friends = action.payload;
         },
         addFriend: (state, action) => {
-            if (!state.friends.some(friend => friend.id === action.payload.id)) {
-                state.friends.push(action.payload);
-                localStorage.setItem('friends', JSON.stringify(state.friends));
-            }
+            console.log('Добавлен друг:', action.payload);
+            state.friends.push(action.payload);
         },
         removeFriend: (state, action) => {
+            console.log('Удален друг:', action.payload);
             state.friends = state.friends.filter(friend => friend.id !== action.payload.id);
-            localStorage.setItem('friends', JSON.stringify(state.friends));
         },
     },
 });
 
-export const { login, logout, addFriend, removeFriend } = authSlice.actions;
+export const { login, logout, setFriends, addFriend, removeFriend } = authSlice.actions;
+
+export const fetchFriends = (userId) => async (dispatch) => {
+    console.log(`Загрузка друзей для userId=${userId}`);
+    try {
+        const response = await axios.get(`/friends?userId=${userId}`);
+        console.log('Друзья загружены:', response.data);
+        dispatch(setFriends(response.data));
+    } catch (error) {
+        console.error('Ошибка при загрузке друзей:', error);
+    }
+};
+
+export const addFriendToServer = (userId, friendId) => async (dispatch) => {
+    console.log(`Добавление друга friendId=${friendId} для userId=${userId}`);
+    try {
+        const response = await axios.post('/friends', { userId, friendId });
+        console.log('Друг добавлен на сервере:', response.data);
+        dispatch(addFriend(response.data));
+    } catch (error) {
+        console.error('Ошибка при добавлении друга:', error);
+    }
+};
+
+export const removeFriendFromServer = (userId, friendId) => async (dispatch) => {
+    console.log(`Удаление друга friendId=${friendId} для userId=${userId}`);
+    try {
+        await axios.delete('/friends', { data: { userId, friendId } });
+        console.log('Друг удален на сервере:', { userId, friendId });
+        dispatch(removeFriend({ id: friendId }));
+    } catch (error) {
+        console.error('Ошибка при удалении друга:', error);
+    }
+};
+
 export default authSlice.reducer;
