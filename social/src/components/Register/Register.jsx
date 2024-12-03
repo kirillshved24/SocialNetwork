@@ -9,6 +9,7 @@ import { Title } from '../../ui/Typo';
 import * as SC from './styles';
 import { Label } from '../../ui/Label';
 import { useLocalStorage } from '../../hooks/useLocal';
+import { validateRegistration } from '../../shared/utils/validation';
 
 export const Register = () => {
     const [username, setUsername] = useState('');
@@ -19,29 +20,23 @@ export const Register = () => {
     const navigate = useNavigate();
     const { get, set } = useLocalStorage();
 
-    const isFormValid = () => {
-        if (username.trim() === '' || password.trim() === '' || email.trim() === '') {
-            alert('Пожалуйста, заполните все поля.');
-            return false;
+    // Проверка формы и валидация
+    const handleRegister = () => {
+        const validationError = validateRegistration({ username, email, password });
+        if (validationError) {
+            alert(validationError);
+            return;
         }
-        const passwordRegex = /^(?=.*[0-9]).{6,}$/;
-        if (!passwordRegex.test(password)) {
-            alert('Пароль должен быть не менее 6 символов и содержать хотя бы одну цифру.');
-            return false;
-        }
-        return true;
-    };
 
-    const addNewUser = (newUser) => {
+        // Генерация нового пользователя
+        const newUser = { id: Date.now(), username, password, email, isAdmin };
+        
+        // Добавление пользователя в локальное хранилище
         const users = get('users') || [];
         users.push(newUser);
         set('users', users);
-    };
 
-    const handleRegister = () => {
-        if (!isFormValid()) return;
-        const newUser = { id: Date.now(), username, password, email, isAdmin };
-        addNewUser(newUser);
+        // Логин и переход на главную страницу
         dispatch(login({ username, email, isAdmin }));
         navigate('/');
     };

@@ -1,79 +1,128 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+
+// Начальное состояние
 const initialState = {
     currentUser: null,
     isAdmin: false,
     isAuthenticated: false,
     friends: [],
+    status: 'idle', // для отслеживания состояния загрузки
+    error: null, // для ошибок
 };
 
-const authSlice = createSlice({                                      
+// Асинхронные экшены с createAsyncThunk
+
+// Запрос на сервер для загрузки друзей
+export const fetchFriends = createAsyncThunk(
+    'auth/fetchFriends',
+    async (userId, { rejectWithValue }) => {
+        if (!userId) {
+            return rejectWithValue('Ошибка: userId не указан');
+        }
+        try {
+            const response = await axios.get(`/friends?userId=${userId}`);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
+
+// Добавление друга на сервер
+export const addFriendToServer = createAsyncThunk(
+    'auth/addFriendToServer',
+    async ({ userId, friendId }, { rejectWithValue }) => {
+        try {
+            const response = await axios.post('/friends', { userId, friendId });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
+
+// Удаление друга с сервера
+export const removeFriendFromServer = createAsyncThunk(
+    'auth/removeFriendFromServer',
+    async ({ userId, friendId }, { rejectWithValue }) => {
+        try {
+            await axios.delete('/friends', { data: { userId, friendId } });
+            return { userId, friendId }; // Возвращаем данные для удаления из состояния
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
+
+export const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
         login: (state, action) => {
             const { username, email, id, isAdmin } = action.payload;
-            console.log('Вход пользователя:', action.payload);
             state.currentUser = { username, email, id };
             state.isAdmin = isAdmin;
             state.isAuthenticated = true;
         },
         logout: (state) => {
-            console.log('Выход пользователя');
             state.currentUser = null;
             state.isAdmin = false;
             state.isAuthenticated = false;
             state.friends = [];
         },
         setFriends: (state, action) => {
-            console.log('Установлены друзья:', action.payload);
             state.friends = action.payload;
         },
         addFriend: (state, action) => {
-            console.log('Добавлен друг:', action.payload);
             state.friends.push(action.payload);
         },
         removeFriend: (state, action) => {
-            console.log('Удален друг:', action.payload);
-            state.friends = state.friends.filter(friend => friend.id !== action.payload.id);
+            state.friends = state.friends.filter(friend => friend.id !== action.payload.friendId);
         },
+    },
+    extraReducers: (builder) => {
+        builder
+            // Обработка успешной загрузки друзей
+            .addCase(fetchFriends.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(fetchFriends.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.friends = action.payload;
+            })
+            .addCase(fetchFriends.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+           
+            .addCase(addFriendToServer.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(addFriendToServer.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.friends.push(action.payload);
+            })
+            .addCase(addFriendToServer.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+            // Обработка успешного удаления друга
+            .addCase(removeFriendFromServer.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(removeFriendFromServer.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.friends = state.friends.filter(friend => friend.id !== action.payload.friendId);
+            })
+            .addCase(removeFriendFromServer.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            });
     },
 });
 
 export const { login, logout, setFriends, addFriend, removeFriend } = authSlice.actions;
-
-export const fetchFriends = (userId) => async (dispatch) => {
-    console.log(`Загрузка друзей для userId=${userId}`);
-    try {
-        const response = await axios.get(`/friends?userId=${userId}`);
-        console.log('Друзья загружены:', response.data);
-        dispatch(setFriends(response.data));
-    } catch (error) {
-        console.error('Ошибка при загрузке друзей:', error);
-    }
-};
-
-export const addFriendToServer = (userId, friendId) => async (dispatch) => {
-    console.log(`Добавление друга friendId=${friendId} для userId=${userId}`);
-    try {
-        const response = await axios.post('/friends', { userId, friendId });
-        console.log('Друг добавлен на сервере:', response.data);
-        dispatch(addFriend(response.data));
-    } catch (error) {
-        console.error('Ошибка при добавлении друга:', error);
-    }
-};
-
-export const removeFriendFromServer = (userId, friendId) => async (dispatch) => {
-    console.log(`Удаление друга friendId=${friendId} для userId=${userId}`);
-    try {
-        await axios.delete('/friends', { data: { userId, friendId } });
-        console.log('Друг удален на сервере:', { userId, friendId });
-        dispatch(removeFriend({ id: friendId }));
-    } catch (error) {
-        console.error('Ошибка при удалении друга:', error);
-    }
-};
 
 export default authSlice.reducer;

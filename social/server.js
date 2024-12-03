@@ -1,71 +1,104 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-
 const db = new sqlite3.Database('./users.db', (err) => {
     if (err) {
         console.error('Ошибка подключения к базе данных:', err);
     } else {
         console.log('Подключено к базе данных SQLite');
-        db.run(`
-            CREATE TABLE IF NOT EXISTS friends (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                userId INTEGER,
-                friendId INTEGER
-            )
-        `);
     }
 });
 
+// Секретный ключ для подписи JWT токенов
+const JWT_SECRET = 'your_secret_key';
 
-app.get('/friends', (req, res) => {
-    const { userId } = req.query;
-    const query = `SELECT * FROM friends WHERE userId = ?`;
+// Регистрация пользователя
+app.post('/sign-up', async (req, res) => {
+    const { username, email, password, isAdmin } = req.body;
 
-    db.all(query, [userId], (err, rows) => {
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
+    }
+
+    // Хешируем пароль перед сохранением
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const query = 'INSERT INTO users (username, email, password, isAdmin) VALUES (?, ?, ?, ?)';
+    db.run(query, [username, email, hashedPassword, isAdmin || false], function(err) {
         if (err) {
-            res.status(500).json({ error: err.message });
-        } else {
-            res.json(rows);
+            return res.status(500).json({ error: 'Ошибка при регистрации' });
         }
+
+        res.status(201).json({
+            id: this.lastID,
+            username,
+            email,
+            isAdmin: isAdmin || false,
+        });
     });
 });
 
+// Вход пользователя
+app.post('/sign-in', (req, res) => {
+    const { username, password } = req.body;
 
-app.post('/friends', (req, res) => {
-    const { userId, friendId } = req.body;
-    const query = `INSERT INTO friends (userId, friendId) VALUES (?, ?)`;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Все поля обязательны для входа' });
+    }
 
-    db.run(query, [userId, friendId], function (err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-        } else {
-            res.json({ id: this.lastID, userId, friendId });
+    // Поиск пользователя по имени
+    const query = 'SELECT * FROM users WHERE username = ?';
+    db.get(query, [username], async (err, user) => {
+        if (err || !user) {
+            return res.status(401).json({ error: 'Неверное имя пользователя или пароль' });
         }
+
+        // Сравниваем пароли
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Неверное имя пользователя или пароль' });
+        }
+
+        // Создаем JWT токен
+        const token = jwt.sign(
+            { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.json({
+            message: 'Вход успешен',
+            token,
+            user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin },
+        });
     });
 });
 
+// Пример защищенного маршрута
+app.get('/protected', (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(403).json({ error: 'Нет доступа' });
+    }
 
-app.delete('/friends', (req, res) => {
-    const { userId, friendId } = req.body;
-    const query = `DELETE FROM friends WHERE userId = ? AND friendId = ?`;
-
-    db.run(query, [userId, friendId], function (err) {
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
-            res.status(500).json({ error: err.message });
-        } else {
-            res.json({ message: 'Друг успешно удален' });
+            return res.status(401).json({ error: 'Неверный или просроченный токен' });
         }
+
+        res.json({ message: 'Доступ разрешен', user: decoded });
     });
 });
 
-
+// Запуск сервера
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
