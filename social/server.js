@@ -16,9 +16,9 @@ const db = new sqlite3.Database('./users.db', (err) => {
     }
 });
 
-// **1. Добавление друга**
+// 1. Добавление друга**
 app.post('/friends', (req, res) => {
-    console.log('POST /friends получен запрос', req.body); // Логируем тело запроса
+    console.log('POST /friends получен запрос', req.body); 
     const { userId, friendId } = req.body;
 
     // Проверяем, что данные переданы
@@ -27,7 +27,7 @@ app.post('/friends', (req, res) => {
         return res.status(400).json({ error: 'userId и friendId обязательны' });
     }
 
-    // Проверка существования записи
+   
     const queryCheck = 'SELECT * FROM friends WHERE userId = ? AND friendId = ?';
     db.get(queryCheck, [userId, friendId], (err, row) => {
         if (err) {
@@ -40,7 +40,7 @@ app.post('/friends', (req, res) => {
             return res.status(400).json({ error: 'Вы уже друзья' });
         }
 
-        // Вставка записи
+       
         const queryInsert = 'INSERT INTO friends (userId, friendId) VALUES (?, ?)';
         db.run(queryInsert, [userId, friendId], function (err) {
             if (err) {
@@ -53,7 +53,7 @@ app.post('/friends', (req, res) => {
         });
     });
 });
-// **2. Удаление друга**
+// 2. Удаление друга
 app.delete('/friends', (req, res) => {
     console.log('DELETE /friends получен запрос', req.body);
     const { userId, friendId } = req.body;
@@ -74,7 +74,7 @@ app.delete('/friends', (req, res) => {
     });
 });
 
-// **3. Получение пользователей**
+// 3. Получение пользователей
 app.get('/users', (req, res) => {
     const query = 'SELECT * FROM users';
     db.all(query, (err, rows) => {
