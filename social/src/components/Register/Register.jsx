@@ -28,7 +28,7 @@ export const Register = () => {
             return;
         }
 
-        // Генерация нового пользователя
+        // Генерация нового пользователя с уникальным id
         const newUser = { id: Date.now(), username, password, email, isAdmin };
         
         // Добавление пользователя в локальное хранилище
@@ -36,8 +36,8 @@ export const Register = () => {
         users.push(newUser);
         set('users', users);
 
-        // Логин и переход на главную страницу
-        dispatch(login({ username, email, isAdmin }));
+        // Логин пользователя
+        dispatch(login({ id: newUser.id, username, email, isAdmin }));
         navigate('/');
     };
 
