@@ -17,7 +17,7 @@ export const FriendsPage = () => {
             if (currentUser) {
                 console.log('Загружаем пользователей для:', currentUser.username);
                 try {
-                    const users = await fetchUsers(currentUser.username);
+                    const users = await fetchUsers(currentUser.username); // Запрашиваем пользователей с учетом текущего
                     console.log('Пользователи получены:', users);
                     setAvailableFriends(users.filter(user => !friends.some(f => f.id === user.id)));
                 } catch (error) {
@@ -26,7 +26,7 @@ export const FriendsPage = () => {
             }
         };
 
-        loadUsers(currentUser);
+        loadUsers(); // Уберите передачу currentUser как аргумент
 
         if (currentUser?.id) {
             console.log('Загружаем друзей для пользователя:', currentUser.id);
@@ -37,8 +37,16 @@ export const FriendsPage = () => {
     const handleAddFriend = (friendId) => {
         if (currentUser) {
             console.log('Добавляем друга с ID:', friendId);
-            dispatch(addFriendToServer(currentUser.id, friendId));
-            setAvailableFriends(availableFriends.filter(f => f.id !== friendId));
+            dispatch(addFriendToServer({ userId: currentUser.id, friendId })) // Обратите внимание на объект
+                .unwrap()
+                .then(() => {
+                    console.log('Друг успешно добавлен.');
+                    // Обновляем список доступных друзей
+                    setAvailableFriends(availableFriends.filter(f => f.id !== friendId));
+                })
+                .catch((error) => {
+                    console.error('Ошибка при добавлении друга:', error); // Лог для отладки
+                });
         }
     };
 

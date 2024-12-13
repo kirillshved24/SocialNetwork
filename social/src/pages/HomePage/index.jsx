@@ -17,11 +17,13 @@ export const HomePage = () => {
 
   // Функция для проверки, является ли пользователь другом
   const isFriend = (postAuthor) => {
-    console.log("Автор поста:", postAuthor);  // Лог для проверки автора поста
     return friends.some((friend) => friend.username === postAuthor.username);
-  };
+};
 
-  const visiblePosts = posts.filter((post) => post.isPublic || isFriend(post.author) || isAdmin);
+  const visiblePosts = posts.filter((post) => {
+    const postAuthor = post.author;
+    return post.isPublic || isFriend(postAuthor) || isAdmin;
+});
 
   const handleDeletePost = (postId) => {
     dispatch(deletePost({ postId, currentUser, isAdmin }));
