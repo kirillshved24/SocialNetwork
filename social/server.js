@@ -4,8 +4,15 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 const app = express();
+
+// Настройка CORS
+app.use(cors({
+    origin: 'http://localhost:3000', 
+    methods: ['GET', 'POST', 'DELETE', 'PUT'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(bodyParser.json());
-app.use(cors());
 
 // Подключение к базе данных
 const db = new sqlite3.Database('./users.db', (err) => {
@@ -16,18 +23,16 @@ const db = new sqlite3.Database('./users.db', (err) => {
     }
 });
 
-// 1. Добавление друга**
+// 1. Добавление друга
 app.post('/friends', (req, res) => {
-    console.log('POST /friends получен запрос', req.body); 
+    console.log('POST /friends получен запрос', req.body); // Логируем тело запроса
     const { userId, friendId } = req.body;
-
-    // Проверяем, что данные переданы
+    console.log('Запрос на добавление друга: userId:', userId, 'friendId:', friendId);
     if (!userId || !friendId) {
         console.error('userId или friendId не переданы');
         return res.status(400).json({ error: 'userId и friendId обязательны' });
     }
 
-   
     const queryCheck = 'SELECT * FROM friends WHERE userId = ? AND friendId = ?';
     db.get(queryCheck, [userId, friendId], (err, row) => {
         if (err) {
@@ -40,7 +45,6 @@ app.post('/friends', (req, res) => {
             return res.status(400).json({ error: 'Вы уже друзья' });
         }
 
-       
         const queryInsert = 'INSERT INTO friends (userId, friendId) VALUES (?, ?)';
         db.run(queryInsert, [userId, friendId], function (err) {
             if (err) {

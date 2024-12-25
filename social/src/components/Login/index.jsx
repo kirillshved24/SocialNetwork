@@ -8,6 +8,7 @@ import { Button } from '../../ui/Button';
 import { Title } from '../../ui/Typo';
 import { FormWrapper } from '../Register/styles';
 
+
 export const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -42,24 +43,24 @@ export const Login = () => {
     }
   };
 
-  return (
-    <Container>
-      <FormWrapper>
-        <Title>Вход</Title>
-        <Input
-          type="text"
-          placeholder="Имя пользователя"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <Input
-          type="password"
-          placeholder="Пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button onClick={handleLogin}>Войти</Button>
-      </FormWrapper>
-    </Container>
-  );
+    return (
+        <Container>
+            <FormWrapper>
+                <Title>Вход</Title>
+                <Input
+                    type="text"
+                    placeholder="Имя пользователя"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+                <Input
+                    type="password"
+                    placeholder="Пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button onClick={handleLogin}>Войти</Button>
+            </FormWrapper>
+        </Container>
+    );
 };

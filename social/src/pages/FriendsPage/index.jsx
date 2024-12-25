@@ -5,48 +5,55 @@ import { Container } from '../../ui/Container';
 import { Button } from '../../ui/Button';
 import { Title } from '../../ui/Typo';
 import * as SC from './styles';
-import { fetchUsers } from '../../api/friendsApi'; 
+import { fetchUsers } from '../../api/friendsApi';
 
 export const FriendsPage = () => {
     const [availableFriends, setAvailableFriends] = useState([]);
     const { currentUser, friends } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
 
+    // Логируем текущее состояние пользователя
     useEffect(() => {
+        console.log('Текущий пользователь:', currentUser);
+
         const loadUsers = async () => {
             if (currentUser) {
                 console.log('Загружаем пользователей для:', currentUser.username);
                 try {
-                    const users = await fetchUsers(currentUser.username); // Запрашиваем пользователей с учетом текущего
-                    console.log('Пользователи получены:', users);
+                    const users = await fetchUsers(currentUser.username);
                     setAvailableFriends(users.filter(user => !friends.some(f => f.id === user.id)));
                 } catch (error) {
                     console.error('Ошибка при загрузке пользователей:', error);
                 }
+            } else {
+                console.error('Ошибка: данные о текущем пользователе не загружены');
             }
         };
 
-        loadUsers(); // Уберите передачу currentUser как аргумент
+        // Загружаем доступных друзей, только если пользователь существует
+        loadUsers();
 
+        // Загружаем список друзей, если id пользователя доступен
         if (currentUser?.id) {
-            console.log('Загружаем друзей для пользователя:', currentUser.id);
-            dispatch(fetchFriends(currentUser.id)); 
+            console.log('Загружаем друзей для пользователя с id:', currentUser.id);
+            dispatch(fetchFriends(currentUser.id));
         }
     }, [currentUser, dispatch, friends]);
 
+    // Функция для добавления друга
     const handleAddFriend = (friendId) => {
-        if (currentUser) {
+        if (currentUser && currentUser.id) {
             console.log('Добавляем друга с ID:', friendId);
-            dispatch(addFriendToServer({ userId: currentUser.id, friendId })) // Обратите внимание на объект
-                .unwrap()
+            dispatch(addFriendToServer({ userId: currentUser.id, friendId }))
                 .then(() => {
                     console.log('Друг успешно добавлен.');
-                    // Обновляем список доступных друзей
                     setAvailableFriends(availableFriends.filter(f => f.id !== friendId));
                 })
                 .catch((error) => {
-                    console.error('Ошибка при добавлении друга:', error); // Лог для отладки
+                    console.error('Ошибка при добавлении друга:', error);
                 });
+        } else {
+            console.error('Ошибка: данные о текущем пользователе не загружены');
         }
     };
 

@@ -1,4 +1,5 @@
-import React from "react";
-import * as SC from './styles'
+import React, { forwardRef } from 'react';
+import * as SC from './styles';
 
-export const Input = (props) => <SC.Input {...props} />
+// Используем forwardRef для поддержки рефов
+export const Input = forwardRef((props, ref) => <SC.Input ref={ref} {...props} />);

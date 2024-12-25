@@ -9,21 +9,17 @@ import { PostFriends } from '../PostPage/components/PostFriends';
 
 export const HomePage = () => {
   const posts = useSelector((state) => state.posts.posts);
-  const { currentUser, isAdmin, friends } = useSelector((state) => state.auth); 
+  const { currentUser, isAdmin, friends } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  // Логирование списка друзей
-  console.log("Список друзей на главной странице:", friends);
-
-  // Функция для проверки, является ли пользователь другом
   const isFriend = (postAuthor) => {
     return friends.some((friend) => friend.username === postAuthor.username);
-};
+  };
 
   const visiblePosts = posts.filter((post) => {
     const postAuthor = post.author;
     return post.isPublic || isFriend(postAuthor) || isAdmin;
-});
+  });
 
   const handleDeletePost = (postId) => {
     dispatch(deletePost({ postId, currentUser, isAdmin }));
@@ -45,7 +41,7 @@ export const HomePage = () => {
         </SC.UserInfo>
       )}
       <SC.ContentWrapper>
-        <MyFriends currentUser={currentUser}/>
+        <MyFriends />
         <PostFriends
           posts={visiblePosts}
           currentUser={currentUser}

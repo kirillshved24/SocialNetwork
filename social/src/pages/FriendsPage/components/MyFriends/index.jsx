@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchFriends, removeFriendFromServer, } from '../../../../redux/slices/authSlice';
+import { fetchFriends, removeFriendFromServer } from '../../../../redux/slices/authSlice';
 import { Button } from '../../../../ui/Button';
 import { Title } from '../../../../ui/Typo';
 import * as SC from '../MyFriends/styles';
@@ -11,13 +11,11 @@ export const MyFriends = () => {
 
     useEffect(() => {
         if (currentUser) {
-            console.log('Загрузка друзей для текущего пользователя');
             dispatch(fetchFriends(currentUser.id));
         }
     }, [currentUser, dispatch]);
 
     const handleRemoveFriend = (friend) => {
-        console.log('Удаление друга:', friend);
         dispatch(removeFriendFromServer(currentUser.id, friend.id));
     };
 
@@ -39,5 +37,5 @@ export const MyFriends = () => {
                 )}
             </SC.FriendsList>
         </SC.FriendsBlock>
-    )
-}
+    );
+};
