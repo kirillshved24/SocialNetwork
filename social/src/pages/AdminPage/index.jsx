@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet'
 
 export const AdminPage = () => { 
     const navigate = useNavigate();
@@ -13,7 +14,10 @@ export const AdminPage = () => {
 
     return (
         <div>
-            <h2>Страница администратора</h2>
+        <Helmet>
+        <h2>Страница администратора</h2>
+        </Helmet>
+            
             <p>Добро пожаловать, администратор! Здесь вы можете управлять постами и пользователями.</p>
         </div>
     );

@@ -12,3 +12,12 @@ export const FormWrapper = styled.div`
     flex-direction: column;
     gap: 15px;
 `
+export const FormRegistration=styled.form`
+display: flex;
+    flex-direction: column;
+    max-width: 280px;
+    width: 100%;
+  
+    gap: 15px;
+    padding: 33px 58px;
+`
