@@ -40,7 +40,7 @@ export const AvailableFriendsList = styled.ul`
   margin: 0;
 `;
 
-// Кнопка добавления друга
+
 export const Button = styled.button`
   padding: 8px 12px;
   border: none;
@@ -62,6 +62,14 @@ export const NoAvailableFriendsMessage = styled.div`
   padding: 15px;
   text-align: center;
   background-color: #fff;
-  border-radius: 8px;
+border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+`;
+export const FriendsList = styled.ul`
+  list-style-type: none;
+  padding: 0;
+`;
+export const NoFriendsMessage = styled.p`
+  font-style: italic;
+  color: #999;
 `;

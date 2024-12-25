@@ -1,21 +1,15 @@
-export const fetchUsers = async (currentUsername) => {
+export const fetchUsers = async (currentUser) => {
     try {
-        const localUsers = JSON.parse(localStorage.getItem('users')) || [];
-        const response = await fetch('https://jsonplaceholder.typicode.com/users');
-        const serverUsers = await response.json();
+        console.log('Запрос пользователей с currentUser:', currentUser);
+        const response = await fetch(`http://localhost:3001/users?currentUser=${currentUser}`);
 
-        const allUsers = [...localUsers, ...serverUsers];
+        if (!response.ok) {
+            throw new Error(`Ошибка загрузки данных с сервера: ${response.status}`);
+        }
 
-        // Нормализуем данные
-        const normalizedUsers = allUsers.map(user => ({
-            id: user.id || Date.now(),
-            username: user.username,
-            name: user.name || user.username, // Если `name` отсутствует, используем `username`
-            email: user.email || 'not provided', // Подстраховка
-        }));
-
-        // Убираем текущего пользователя
-        return normalizedUsers.filter(user => user.username !== currentUsername);
+        const users = await response.json();
+        console.log('Пользователи получены:', users);
+        return users;
     } catch (error) {
         console.error('Ошибка при загрузке пользователей:', error);
         return [];

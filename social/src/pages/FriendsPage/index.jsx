@@ -1,61 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { fetchUsers } from '../../api/friendsApi';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { addFriendToServer, fetchFriends } from '../../redux/slices/authSlice';
 import { Container } from '../../ui/Container';
 import { Button } from '../../ui/Button';
 import { Title } from '../../ui/Typo';
 import * as SC from './styles';
+import { fetchUsers } from '../../api/friendsApi'; 
 
 export const FriendsPage = () => {
     const [availableFriends, setAvailableFriends] = useState([]);
-    const [friends, setFriends] = useState([]);
-    const { currentUser } = useSelector(state => state.auth);
-
-    useEffect(() => {
-        const savedFriends = localStorage.getItem('friends');
-        if (savedFriends) {
-            setFriends(JSON.parse(savedFriends));
-        }
-    }, [currentUser]);
+    const { currentUser, friends } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const loadUsers = async () => {
-            try {
-                const users = await fetchUsers(currentUser.username);
-                const filteredFriends = users.filter(user => !friends.some(friend => friend.id === user.id));
-                setAvailableFriends(filteredFriends);
-            } catch (error) {
-                console.error('Ошибка при загрузке пользователей:', error);
+            if (currentUser) {
+                console.log('Загружаем пользователей для:', currentUser.username);
+                try {
+                    const users = await fetchUsers(currentUser.username); // Запрашиваем пользователей с учетом текущего
+                    console.log('Пользователи получены:', users);
+                    setAvailableFriends(users.filter(user => !friends.some(f => f.id === user.id)));
+                } catch (error) {
+                    console.error('Ошибка при загрузке пользователей:', error);
+                }
             }
         };
-        loadUsers();
-    }, [friends, currentUser]);
 
-    const addFriend = (friend) => {
-        const updatedFriends = [...friends, friend];
-        setFriends(updatedFriends);
-        localStorage.setItem('friends', JSON.stringify(updatedFriends));
-        setAvailableFriends(availableFriends.filter(f => f.id !== friend.id));
+        loadUsers(); // Уберите передачу currentUser как аргумент
+
+        if (currentUser?.id) {
+            console.log('Загружаем друзей для пользователя:', currentUser.id);
+            dispatch(fetchFriends(currentUser.id)); 
+        }
+    }, [currentUser, dispatch, friends]);
+
+    const handleAddFriend = (friendId) => {
+        if (currentUser) {
+            console.log('Добавляем друга с ID:', friendId);
+            dispatch(addFriendToServer({ userId: currentUser.id, friendId })) // Обратите внимание на объект
+                .unwrap()
+                .then(() => {
+                    console.log('Друг успешно добавлен.');
+                    // Обновляем список доступных друзей
+                    setAvailableFriends(availableFriends.filter(f => f.id !== friendId));
+                })
+                .catch((error) => {
+                    console.error('Ошибка при добавлении друга:', error); // Лог для отладки
+                });
+        }
     };
 
     return (
         <Container>
             <SC.FriendsBlock>
-                <Title>Доступные для добавления</Title>
-                <SC.AvailableFriendsList>
+                <Title>Доступные друзья</Title>
+                <SC.FriendsList>
                     {availableFriends.length > 0 ? (
                         availableFriends.map(friend => (
                             <SC.FriendItem key={friend.id}>
-                                <div>{friend.username}</div>
-                                <div>{friend.email}</div>
-                               
-                                <Button onClick={() => addFriend(friend)}>Добавить</Button>
+                                {friend.username} ({friend.email})
+                                <Button onClick={() => handleAddFriend(friend.id)}>Добавить</Button>
                             </SC.FriendItem>
                         ))
                     ) : (
-                        <SC.NoAvailableFriendsMessage>Нет доступных друзей.</SC.NoAvailableFriendsMessage>
+                        <SC.NoFriendsMessage>Нет доступных друзей.</SC.NoFriendsMessage>
                     )}
-                </SC.AvailableFriendsList>
+                </SC.FriendsList>
             </SC.FriendsBlock>
         </Container>
     );

@@ -8,43 +8,36 @@ import { Container } from '../../ui/Container';
 import { Title } from '../../ui/Typo';
 import * as SC from './styles';
 import { Label } from '../../ui/Label';
+import { useLocalStorage } from '../../hooks/useLocal';
+import { validateRegistration } from '../../shared/utils/validation';
 
 export const Register = () => {
-    const [username, setUserName] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { get, set } = useLocalStorage();
 
-    const isFormValid = () => {
-        if (username.trim() === '' || password.trim() === '' || email.trim() === '') {
-            alert('Пожалуйста, заполните все поля');
-            return false;
-        }
-        return true;
-    };
-
-    const addNewUser = (newUser) => {
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-    };
-
+    // Проверка формы и валидация
     const handleRegister = () => {
-        if (!isFormValid()) return;
+        const validationError = validateRegistration({ username, email, password });
+        if (validationError) {
+            alert(validationError);
+            return;
+        }
 
-        const newUser = { 
-            id: Date.now(), 
-            username, 
-            name: username, // Добавляем поле `name`
-            password, 
-            email, 
-            isAdmin 
-        };
+        // Генерация нового пользователя с уникальным id
+        const newUser = { id: Date.now(), username, password, email, isAdmin };
+        
+        // Добавление пользователя в локальное хранилище
+        const users = get('users') || [];
+        users.push(newUser);
+        set('users', users);
 
-        addNewUser(newUser);
-        dispatch(login({ username, email, isAdmin }));
+        // Логин пользователя
+        dispatch(login({ id: newUser.id, username, email, isAdmin }));
         navigate('/');
     };
 
@@ -56,11 +49,11 @@ export const Register = () => {
                     type="text"
                     placeholder="Имя пользователя"
                     value={username}
-                    onChange={(e) => setUserName(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
                 <Input
                     type="email"
-                    placeholder="Введите ваш email"
+                    placeholder="Введите ваш адрес электронной почты"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
@@ -72,9 +65,9 @@ export const Register = () => {
                 />
                 <Label>
                     <Input
-                        type="checkbox" 
+                        type="checkbox"
                         checked={isAdmin}
-                        onChange={() => setIsAdmin(prevState => !prevState)} 
+                        onChange={() => setIsAdmin((prevState) => !prevState)}
                     />
                     Сделать меня администратором
                 </Label>
