@@ -19,6 +19,8 @@ export const MyFriends = () => {
         dispatch(removeFriendFromServer(currentUser.id, friend.id));
     };
 
+    
+
     return (
         <SC.FriendsBlock>
             <Title>Ваши друзья</Title>

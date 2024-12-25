@@ -104,6 +104,42 @@ export const authSlice = createSlice({
                 state.error = action.payload;
             });
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchFriends.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(fetchFriends.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.friends = action.payload;
+            })
+            .addCase(fetchFriends.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+            .addCase(addFriendToServer.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(addFriendToServer.fulfilled, (state, action) => {
+                state.friends.push(action.payload); // Добавляем друга
+            })
+            .addCase(addFriendToServer.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            })
+            .addCase(removeFriendFromServer.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(removeFriendFromServer.fulfilled, (state, action) => {
+                state.friends = state.friends.filter(
+                    (friend) => friend.id !== action.payload.friendId
+                ); // Удаляем друга
+            })
+            .addCase(removeFriendFromServer.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload;
+            });
+    },
 });
 
 export const { login, logout, setFriends } = authSlice.actions;
